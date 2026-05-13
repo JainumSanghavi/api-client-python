@@ -2,6 +2,7 @@ from .types import Hooks
 from .server_url_normalizer import ServerURLNormalizerHook
 from .multipart_fix_hook import MultipartFileFieldFixHook
 from .agent_file_upload_error_hook import AgentFileUploadErrorHook
+from .answer_likes_null_fix_hook import AnswerLikesNullFixHook
 from .x_glean import XGlean
 
 
@@ -24,6 +25,11 @@ def init_hooks(hooks: Hooks):
 
     # Register hook to provide helpful error messages for agent file upload issues
     hooks.register_after_error_hook(AgentFileUploadErrorHook())
+
+    # Register hook to rewrite `"likedBy": null` -> `"likedBy": []` in JSON
+    # responses so the AnswerLikes model can unmarshal answers with zero likes
+    # (see https://github.com/gleanwork/api-client-python/issues/47).
+    hooks.register_after_success_hook(AnswerLikesNullFixHook())
 
     # Register hook for X-Glean headers (experimental features and deprecation testing)
     hooks.register_before_request_hook(XGlean())
